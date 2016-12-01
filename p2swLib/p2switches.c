@@ -5,24 +5,25 @@ static unsigned char switch_mask;
 static unsigned char switches_last_reported;
 static unsigned char switches_current;
 
-static void
+static char
 switch_update_interrupt_sense()
 {
-  switches_current = P2IN & switch_mask;
-  /* update switch interrupt to detect changes from current buttons */
-  P2IES |= (switches_current);  /* if switch up, sense down */
-  P2IES &= (switches_current | ~switch_mask); /* if switch down, sense up */
+   char p1val = P2IN;
+
+  P2IES |= (p1val & SWITCHES);
+  P2IES &= (p1val | ~SWITCHES);
+  return p1val;
 }
 
 void 
-p2sw_init(unsigned char mask)
+switch_init()
 {
-  switch_mask = mask;
-  P2REN |= mask;    /* enables resistors for switches */
-  P2IE = mask;      /* enable interrupts from switches */
-  P2OUT |= mask;    /* pull-ups for switches */
-  P2DIR &= ~mask;   /* set switches' bits for input */
-  P2IES |= mask;    
+  
+  P2REN |= SWITCHES;    /* enables resistors for switches */
+  P2IE = SWITCHES;      /* enable interrupts from switches */
+  P2OUT |= SWITCHES;    /* pull-ups for switches */
+  P2DIR &= ~SWITCHES;   /* set switches' bits for input */
+  P2IES |= SWITCHES;    
 
   switch_update_interrupt_sense();
 }
@@ -31,17 +32,17 @@ p2sw_init(unsigned char mask)
  * the high-order byte is the buttons that have changed,
  * the low-order byte is the current state of the buttons
  */
-unsigned int 
+/*unsigned int 
 p2sw_read() {
   unsigned int sw_changed = switches_current ^ switches_last_reported;
   switches_last_reported = switches_current;
   return switches_current | (sw_changed << 8);
 }
 
-/* Switch on P2 (S1) */
+/* Switch on P2 (S1) 
 __interrupt(PORT2_VECTOR) Port_2(){
-  if (P2IFG & switch_mask) {  /* did a button cause this interrupt? */
-    P2IFG &= ~switch_mask;	/* clear pending sw interrupts */
+  if (P2IFG & switch_mask) {  /* did a button cause this interrupt? 
+    P2IFG &= ~switch_mask;	/* clear pending sw interrupts 
     switch_update_interrupt_sense();
-  }
+  }*/
 }
